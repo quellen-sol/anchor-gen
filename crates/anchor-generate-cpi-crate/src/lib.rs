@@ -49,8 +49,6 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         ..Default::default()
     };
     let result: TokenStream = opts.to_generator().generate_cpi_interface().into();
-    if (id_literal.value() == "widl.json") {
-        let out_file = fs::write("./examples/jup-v6/src/output.rs", result.to_string()).unwrap();
-    }
+    
     result
 }

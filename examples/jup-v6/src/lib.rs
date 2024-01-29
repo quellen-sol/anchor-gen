@@ -1,9 +1,4 @@
-// use typedefs::Swap;
-
 anchor_gen::generate_cpi_crate!("idl.json");
-
-mod output;
-pub use output::*;
 
 // declare_id!("Govz1VyoyLD5BL6CSCxUJLVLsQHRwjfFj1prNsdNg5Jw");
 
