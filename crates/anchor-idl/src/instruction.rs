@@ -53,10 +53,10 @@ pub fn generate_ix_structs(ixs: &[IdlInstruction]) -> TokenStream {
         quote! {
             #all_structs
 
-            #[derive(Accounts)]
-            pub struct #accounts_name<'info> {
-                #all_fields
-            }
+            // #[derive(Accounts)]
+            // pub struct #accounts_name<'info> {
+            //     #all_fields
+            // }
         }
     });
     quote! {

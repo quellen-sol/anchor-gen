@@ -65,10 +65,11 @@ pub fn generate_account(
     let struct_name = format_ident!("{}", account_name);
     let fields_rendered = generate_fields(fields);
     quote! {
-        #derive_account
-        #[doc = #doc]
-        #derive_copy
-        #derive_default
+        // #derive_account
+        // #[doc = #doc]
+        // #derive_copy
+        // #derive_default
+        #[derive(AnchorDeserialize, AnchorSerialize, Clone, Debug)]
         pub struct #struct_name {
             #fields_rendered
         }

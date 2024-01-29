@@ -135,7 +135,7 @@ impl Generator {
 
         let accounts = generate_accounts(&idl.types, &idl.accounts, &self.struct_opts);
         let typedefs = generate_typedefs(&idl.types, &self.struct_opts);
-        let ix_handlers = generate_ix_handlers(&idl.instructions);
+        // let ix_handlers = generate_ix_handlers(&idl.instructions);
         let ix_structs = generate_ix_structs(&idl.instructions);
 
         let docs = format!(
@@ -160,22 +160,10 @@ impl Generator {
                 #accounts
             }
 
-            pub mod ix_accounts {
+            pub mod instructions {
                 //! Accounts used in instructions.
                 use super::*;
                 #ix_structs
-            }
-
-            use ix_accounts::*;
-            pub use state::*;
-            pub use typedefs::*;
-
-            #[program]
-            pub mod #program_name {
-                #![doc = #docs]
-
-                use super::*;
-                #ix_handlers
             }
         }
     }
