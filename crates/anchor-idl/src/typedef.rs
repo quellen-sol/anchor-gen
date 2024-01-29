@@ -173,53 +173,23 @@ pub fn generate_struct(
     } else {
         quote! {}
     };
-    let derive_serializers = if let Some(zero_copy) = opts.zero_copy {
-        let zero_copy_quote = match zero_copy {
-            crate::ZeroCopy::Unsafe => quote! {
-                #[zero_copy(unsafe)]
-            },
-            crate::ZeroCopy::Safe => quote! {
-                #[zero_copy]
-            },
-        };
-        if let Some(repr) = opts.representation {
-            let repr_quote = match repr {
-                crate::Representation::C => quote! {
-                    #[repr(C)]
-                },
-                crate::Representation::Transparent => quote! {
 
-                    #[repr(transparent)]
-                },
-                crate::Representation::Packed => quote! {
-                    #[repr(packed)]
-                },
-            };
+    let derive_copy = if props.can_copy {
             quote! {
-                #zero_copy_quote
-                #repr_quote
+                #[derive(Copy, Clone)]
             }
         } else {
-            zero_copy_quote
-        }
-    } else {
-        let derive_copy = if props.can_copy {
             quote! {
-                #[derive(Copy)]
+                #[derive(Clone)]
             }
-        } else {
-            quote! {}
         };
         quote! {
-            #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
             #derive_copy
-        }
-    };
+        };
 
     quote! {
-        #derive_serializers
-        #[derive(Debug)]
-        #derive_default
+        #derive_copy
+        #[derive(Debug, AnchorDeserialize)]
         pub struct #struct_name {
             #fields_rendered
         }
@@ -243,19 +213,11 @@ pub fn generate_enum(
         quote! {}
     };
 
-    let default_variant = format_ident!("{}", variants.first().unwrap().name);
-
     quote! {
-        #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
+        #[derive(AnchorDeserialize, Clone, Debug)]
         #derive_copy
         pub enum #enum_name {
             #(#variant_idents),*
-        }
-
-        impl Default for #enum_name {
-            fn default() -> Self {
-                Self::#default_variant
-            }
         }
     }
 }
@@ -279,6 +241,7 @@ pub fn generate_typedefs(
                 let ty = crate::ty_to_rust_type(value);
                 let stream: proc_macro2::TokenStream = ty.parse().unwrap();
                 quote! {
+                    #[derive(AnchorDeserialize, Clone, Debug)]
                     pub type #struct_name = #stream;
                 }
             }

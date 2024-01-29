@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use anchor_syn::idl::types::{IdlField, IdlTypeDefinition, IdlTypeDefinitionTy};
+use heck::ToPascalCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
@@ -11,17 +12,10 @@ pub fn generate_account(
     defs: &[IdlTypeDefinition],
     account_name: &str,
     fields: &[IdlField],
-    opts: StructOpts,
+    _opts: StructOpts,
 ) -> TokenStream {
     let props = get_field_list_properties(defs, fields);
 
-    let derive_copy = if props.can_copy && opts.zero_copy.is_none() {
-        quote! {
-            #[derive(Copy)]
-        }
-    } else {
-        quote! {}
-    };
     let derive_default = if props.can_derive_default {
         quote! {
             #[derive(Default)]
@@ -29,47 +23,16 @@ pub fn generate_account(
     } else {
         quote! {}
     };
-    let derive_account = if let Some(zero_copy) = opts.zero_copy {
-        let zero_copy_quote = match zero_copy {
-            crate::ZeroCopy::Unsafe => quote! {
-                #[account(zero_copy(unsafe))]
-            },
-            crate::ZeroCopy::Safe => quote! {
-                #[account(zero_copy)]
-            },
-        };
-        if let Some(repr) = opts.representation {
-            let repr_quote = match repr {
-                crate::Representation::C => quote! {
-                    #[repr(C)]
-                },
-                crate::Representation::Transparent => quote! {
-                    #[repr(transparent)]
-                },
-                crate::Representation::Packed => quote! {
-                    #[repr(packed)]
-                },
-            };
-            quote! {
-                #zero_copy_quote
-                #repr_quote
-            }
-        } else {
-            zero_copy_quote
-        }
-    } else {
-        quote! {#[account]}
-    };
 
-    let doc = format!(" Account: {}", account_name);
-    let struct_name = format_ident!("{}", account_name);
+    // let doc = format!(" Account: {}", account_name);
+    let struct_name = format_ident!("{}", account_name.to_pascal_case());
     let fields_rendered = generate_fields(fields);
     quote! {
         // #derive_account
-        // #[doc = #doc]
+        // // #[doc = #doc]
         // #derive_copy
         // #derive_default
-        #[derive(AnchorDeserialize, AnchorSerialize, Clone, Debug)]
+        #[derive(AnchorDeserialize, Clone, Debug)]
         pub struct #struct_name {
             #fields_rendered
         }

@@ -14,7 +14,10 @@
 //!
 //! More examples can be found in the [examples/](https://github.com/saber-hq/anchor-gen/tree/master/examples) directory.
 
+use std::fs;
+
 use anchor_idl::GeneratorOptions;
+use proc_macro::TokenStream;
 use syn::{parse_macro_input, LitStr};
 
 /// Generates an Anchor CPI crate from a JSON file.
@@ -45,5 +48,9 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         idl_path: id_literal.value(),
         ..Default::default()
     };
-    opts.to_generator().generate_cpi_interface().into()
+    let result: TokenStream = opts.to_generator().generate_cpi_interface().into();
+    if (id_literal.value() == "widl.json") {
+        let out_file = fs::write("./examples/jup-v6/src/output.rs", result.to_string()).unwrap();
+    }
+    result
 }

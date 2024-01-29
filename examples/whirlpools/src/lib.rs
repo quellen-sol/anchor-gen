@@ -8,19 +8,19 @@
 //! Anchor CPI helpers from JSON IDLs.
 
 anchor_gen::generate_cpi_interface!(
-    idl_path = "idl.json",
+    idl_path = "widl.json",
     zero_copy_unsafe(TickArray, Tick),
     packed_representation(TickArray, Tick),
 );
 
-impl Default for state::TickArray {
-    fn default() -> Self {
-        Self {
-            start_tick_index: Default::default(),
-            ticks: [Default::default(); 88],
-            whirlpool: Default::default(),
-        }
-    }
-}
+// impl Default for TickArray {
+//     fn default() -> Self {
+//         Self {
+//             start_tick_index: Default::default(),
+//             ticks: [Default::default(); 88],
+//             whirlpool: Default::default(),
+//         }
+//     }
+// }
 
 declare_id!("whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc");

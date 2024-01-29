@@ -9,7 +9,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
 use crate::{
-    generate_accounts, generate_ix_handlers, generate_ix_structs, generate_typedefs, GEN_VERSION,
+    generate_accounts, generate_ix_deser_structs, generate_typedefs, GEN_VERSION
 };
 
 #[derive(Default, FromMeta)]
@@ -136,7 +136,8 @@ impl Generator {
         let accounts = generate_accounts(&idl.types, &idl.accounts, &self.struct_opts);
         let typedefs = generate_typedefs(&idl.types, &self.struct_opts);
         // let ix_handlers = generate_ix_handlers(&idl.instructions);
-        let ix_structs = generate_ix_structs(&idl.instructions);
+        // let ix_structs = generate_ix_structs(&idl.instructions);
+        let ix_structs = generate_ix_deser_structs(&idl.instructions);
 
         let docs = format!(
         " Anchor CPI crate generated from {} v{} using [anchor-gen](https://crates.io/crates/anchor-gen) v{}.",
@@ -148,23 +149,28 @@ impl Generator {
         quote! {
             use anchor_lang::prelude::*;
 
-            pub mod typedefs {
-                //! User-defined types.
-                use super::*;
-                #typedefs
-            }
+            // pub mod typedefs {
+            //     use super::*;
+            //     #typedefs
+            // }
 
-            pub mod state {
-                //! Structs of accounts which hold state.
-                use super::*;
-                #accounts
-            }
+            // pub mod instructions {
+            //     use super::*;
+            //     #ix_structs
+            // }
 
-            pub mod instructions {
-                //! Accounts used in instructions.
-                use super::*;
-                #ix_structs
-            }
+            // pub mod state {
+            //     use super::*;
+            //     #accounts
+            // }
+
+            // pub use state::*;
+            // pub use instructions::*;
+            // pub use typedefs::*;
+
+            #typedefs
+            #ix_structs
+            #accounts
         }
     }
 }

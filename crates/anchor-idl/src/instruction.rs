@@ -3,6 +3,36 @@ use heck::{ToPascalCase, ToSnakeCase};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
+pub fn generate_ix_deser_structs(ixs: &[IdlInstruction]) -> TokenStream {
+    let defs = ixs.iter().map(|ix| {
+        let ix_name = format_ident!("{}Ix", ix.name.to_pascal_case());
+
+        let args = ix
+            .args
+            .iter()
+            .map(|arg| {
+                let name = format_ident!("{}", arg.name.to_snake_case());
+                let type_name = crate::ty_to_rust_type(&arg.ty);
+                let stream = type_name.parse::<TokenStream>().unwrap();
+                quote! {
+                    pub #name: #stream
+                }
+            })
+            .collect::<Vec<_>>();
+
+        quote! {
+            #[derive(AnchorDeserialize, Clone, Debug)]
+            pub struct #ix_name {
+                #(#args),*
+            }
+        }
+    }).collect::<Vec<_>>();
+
+    quote! {
+        #(#defs)*
+    }
+}
+
 /// Generates a single instruction handler.
 pub fn generate_ix_handler(ix: &IdlInstruction) -> TokenStream {
     let ix_name = format_ident!("{}", ix.name.to_snake_case());
@@ -53,10 +83,10 @@ pub fn generate_ix_structs(ixs: &[IdlInstruction]) -> TokenStream {
         quote! {
             #all_structs
 
-            // #[derive(Accounts)]
-            // pub struct #accounts_name<'info> {
-            //     #all_fields
-            // }
+            #[derive(Accounts)]
+            pub struct #accounts_name<'info> {
+                #all_fields
+            }
         }
     });
     quote! {
