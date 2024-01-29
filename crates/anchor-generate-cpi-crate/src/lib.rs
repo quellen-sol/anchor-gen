@@ -14,8 +14,6 @@
 //!
 //! More examples can be found in the [examples/](https://github.com/saber-hq/anchor-gen/tree/master/examples) directory.
 
-use std::fs;
-
 use anchor_idl::GeneratorOptions;
 use proc_macro::TokenStream;
 use syn::{parse_macro_input, LitStr};

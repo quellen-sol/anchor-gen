@@ -2,6 +2,17 @@ anchor_gen::generate_cpi_crate!("idl.json");
 
 // declare_id!("Govz1VyoyLD5BL6CSCxUJLVLsQHRwjfFj1prNsdNg5Jw");
 
+fn handle_union(union: InstructionUnion) {
+  match union {
+    InstructionUnion::SharedAccountsExactOutRoute(ix) => {
+      println!("{}", ix.platform_fee_bps);
+    }
+    _ => {
+      panic!("AAAAAAAAA");
+    }
+  }
+}
+
 fn thing() {
   let t = SharedAccountsRouteIx {
     id: 0,

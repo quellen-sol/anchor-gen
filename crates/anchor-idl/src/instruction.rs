@@ -1,11 +1,18 @@
 use anchor_syn::idl::types::IdlInstruction;
 use heck::{ToPascalCase, ToSnakeCase};
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
 
+pub fn format_ix_name(ix: &IdlInstruction) -> (Ident, Ident) {
+    let ix_name = format_ident!("{}", ix.name.to_pascal_case());
+    let ix_name_with_suffix = format_ident!("{}Ix", ix.name.to_pascal_case());
+    (ix_name, ix_name_with_suffix)
+}
+
 pub fn generate_ix_deser_structs(ixs: &[IdlInstruction]) -> TokenStream {
-    let defs = ixs.iter().map(|ix| {
-        let ix_name = format_ident!("{}Ix", ix.name.to_pascal_case());
+    let mut enum_fields = vec![];
+    let struct_defs = ixs.iter().map(|ix| {
+        let (ix_without_suffix, ix_name_with_suffix) = format_ix_name(ix);
 
         let args = ix
             .args
@@ -20,16 +27,25 @@ pub fn generate_ix_deser_structs(ixs: &[IdlInstruction]) -> TokenStream {
             })
             .collect::<Vec<_>>();
 
+        enum_fields.push(quote! {
+            #ix_without_suffix(#ix_name_with_suffix)
+        });
+
         quote! {
             #[derive(AnchorDeserialize, Clone, Debug)]
-            pub struct #ix_name {
+            pub struct #ix_name_with_suffix {
                 #(#args),*
             }
         }
     }).collect::<Vec<_>>();
 
     quote! {
-        #(#defs)*
+        #[derive(AnchorDeserialize, Clone, Debug)]
+        pub enum InstructionUnion {
+            #(#enum_fields),*
+        }
+
+        #(#struct_defs)*
     }
 }
 
