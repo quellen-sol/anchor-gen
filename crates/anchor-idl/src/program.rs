@@ -5,11 +5,11 @@ use std::{
 };
 
 use darling::{util::PathList, FromMeta};
-use proc_macro2::{Ident, TokenStream};
-use quote::{format_ident, quote};
+use proc_macro2::TokenStream;
+use quote::quote;
 
 use crate::{
-    generate_accounts, generate_events, generate_ix_deser_structs, generate_typedefs, GEN_VERSION
+    generate_accounts, generate_events, generate_ix_deser_structs, generate_typedefs, GEN_VERSION,
 };
 
 #[derive(Default, FromMeta)]
@@ -131,16 +131,15 @@ pub struct Generator {
 impl Generator {
     pub fn generate_cpi_interface(&self) -> TokenStream {
         let idl = &self.idl;
-        let program_name: Ident = format_ident!("{}", idl.name);
 
-        let accounts = generate_accounts(&idl.types, &idl.accounts, &self.struct_opts);
-        let typedefs = generate_typedefs(&idl.types, &self.struct_opts);
+        let accounts = generate_accounts(&idl.types, &idl.accounts);
+        let typedefs = generate_typedefs(&idl.types);
         // let ix_handlers = generate_ix_handlers(&idl.instructions);
         // let ix_structs = generate_ix_structs(&idl.instructions);
         let ix_structs = generate_ix_deser_structs(&idl.instructions);
         let events = generate_events(&idl.events);
 
-        let docs = format!(
+        let _docs = format!(
         " Anchor CPI crate generated from {} v{} using [anchor-gen](https://crates.io/crates/anchor-gen) v{}.",
         &idl.name,
         &idl.version,

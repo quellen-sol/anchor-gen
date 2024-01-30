@@ -1,28 +1,17 @@
-use std::collections::BTreeMap;
-
 use anchor_syn::idl::types::{IdlField, IdlTypeDefinition, IdlTypeDefinitionTy};
 use heck::ToPascalCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::{generate_fields, get_field_list_properties, StructOpts};
+use crate::{generate_fields, get_field_list_properties};
 
 /// Generates an account state struct.
 pub fn generate_account(
     defs: &[IdlTypeDefinition],
     account_name: &str,
     fields: &[IdlField],
-    _opts: StructOpts,
 ) -> TokenStream {
-    let props = get_field_list_properties(defs, fields);
-
-    let derive_default = if props.can_derive_default {
-        quote! {
-            #[derive(Default)]
-        }
-    } else {
-        quote! {}
-    };
+    let _props = get_field_list_properties(defs, fields);
 
     // let doc = format!(" Account: {}", account_name);
     let struct_name = format_ident!("{}", account_name.to_pascal_case());
@@ -43,13 +32,9 @@ pub fn generate_account(
 pub fn generate_accounts(
     typedefs: &[IdlTypeDefinition],
     account_defs: &[IdlTypeDefinition],
-    struct_opts: &BTreeMap<String, StructOpts>,
 ) -> TokenStream {
     let defined = account_defs.iter().map(|def| match &def.ty {
-        IdlTypeDefinitionTy::Struct { fields } => {
-            let opts = struct_opts.get(&def.name).copied().unwrap_or_default();
-            generate_account(typedefs, &def.name, fields, opts)
-        }
+        IdlTypeDefinitionTy::Struct { fields } => generate_account(typedefs, &def.name, fields),
         IdlTypeDefinitionTy::Enum { .. } => {
             panic!("unexpected enum account");
         }

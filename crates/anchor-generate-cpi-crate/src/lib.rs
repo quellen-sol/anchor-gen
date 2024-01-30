@@ -47,6 +47,6 @@ pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         ..Default::default()
     };
     let result: TokenStream = opts.to_generator().generate_cpi_interface().into();
-    
+
     result
 }

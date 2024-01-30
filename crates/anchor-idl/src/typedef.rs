@@ -1,11 +1,9 @@
-use std::collections::BTreeMap;
-
-use anchor_syn::idl::types::{EnumFields, IdlEnumVariant, IdlField, IdlType, IdlTypeDefinition, IdlTypeDefinitionTy};
+use anchor_syn::idl::types::{
+    EnumFields, IdlEnumVariant, IdlField, IdlType, IdlTypeDefinition, IdlTypeDefinitionTy,
+};
 use heck::ToSnakeCase;
 use proc_macro2::{Ident, TokenStream};
 use quote::{format_ident, quote};
-
-use crate::StructOpts;
 
 #[derive(Copy, Clone, Debug, Default)]
 pub struct FieldListProperties {
@@ -99,15 +97,11 @@ pub fn get_type_properties(defs: &[IdlTypeDefinition], ty: &IdlType) -> FieldLis
         IdlType::Defined(inner) => {
             let def = defs.iter().find(|def| def.name == *inner).unwrap();
             match &def.ty {
-                IdlTypeDefinitionTy::Struct { fields } => {
-                    get_field_list_properties(defs, fields)
-                }
+                IdlTypeDefinitionTy::Struct { fields } => get_field_list_properties(defs, fields),
                 IdlTypeDefinitionTy::Enum { variants } => {
                     get_variant_list_properties(defs, variants)
                 }
-                IdlTypeDefinitionTy::Alias { value } => {
-                    get_type_properties(defs, value)
-                }
+                IdlTypeDefinitionTy::Alias { value } => get_type_properties(defs, value),
             }
         }
         IdlType::Option(inner) => get_type_properties(defs, inner),
@@ -126,18 +120,14 @@ pub fn get_type_properties(defs: &[IdlTypeDefinition], ty: &IdlType) -> FieldLis
                 can_derive_default: inner.can_derive_default,
             }
         }
-        IdlType::Generic(_) => {
-            FieldListProperties {
-                can_copy: false,
-                can_derive_default: false,
-            }
-        }
-        IdlType::DefinedWithTypeArgs { .. } => {
-            FieldListProperties {
-                can_copy: false,
-                can_derive_default: false,
-            }
-        }
+        IdlType::Generic(_) => FieldListProperties {
+            can_copy: false,
+            can_derive_default: false,
+        },
+        IdlType::DefinedWithTypeArgs { .. } => FieldListProperties {
+            can_copy: false,
+            can_derive_default: false,
+        },
     }
 }
 
@@ -161,31 +151,22 @@ pub fn generate_struct(
     defs: &[IdlTypeDefinition],
     struct_name: &Ident,
     fields: &[IdlField],
-    opts: StructOpts,
 ) -> TokenStream {
     let fields_rendered = generate_fields(fields);
     let props = get_field_list_properties(defs, fields);
 
-    let derive_default = if props.can_derive_default {
+    let derive_copy = if props.can_copy {
         quote! {
-            #[derive(Default)]
+            #[derive(Copy, Clone)]
         }
     } else {
-        quote! {}
-    };
-
-    let derive_copy = if props.can_copy {
-            quote! {
-                #[derive(Copy, Clone)]
-            }
-        } else {
-            quote! {
-                #[derive(Clone)]
-            }
-        };
         quote! {
-            #derive_copy
-        };
+            #[derive(Clone)]
+        }
+    };
+    quote! {
+        #derive_copy
+    };
 
     quote! {
         #derive_copy
@@ -223,16 +204,12 @@ pub fn generate_enum(
 }
 
 /// Generates structs and enums.
-pub fn generate_typedefs(
-    typedefs: &[IdlTypeDefinition],
-    struct_opts: &BTreeMap<String, StructOpts>,
-) -> TokenStream {
+pub fn generate_typedefs(typedefs: &[IdlTypeDefinition]) -> TokenStream {
     let defined = typedefs.iter().map(|def| {
         let struct_name = format_ident!("{}", def.name);
         match &def.ty {
             IdlTypeDefinitionTy::Struct { fields } => {
-                let opts = struct_opts.get(&def.name).copied().unwrap_or_default();
-                generate_struct(typedefs, &struct_name, fields, opts)
+                generate_struct(typedefs, &struct_name, fields)
             }
             IdlTypeDefinitionTy::Enum { variants } => {
                 generate_enum(typedefs, &struct_name, variants)

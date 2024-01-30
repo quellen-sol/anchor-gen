@@ -47,11 +47,15 @@ pub fn ty_to_rust_type(ty: &IdlType) -> String {
         IdlType::GenericLenArray(inner, _) => format!("Vec<{}>", ty_to_rust_type(inner)),
         IdlType::Generic(generic) => generic.to_string(),
         IdlType::DefinedWithTypeArgs { name, args } => {
-            let args_list = args.iter().map(|arg| match arg {
-                IdlDefinedTypeArg::Generic(generic) => generic.clone(),
-                IdlDefinedTypeArg::Value(value) => value.clone(),
-                IdlDefinedTypeArg::Type(idl_type) => ty_to_rust_type(idl_type),
-            }).collect::<Vec<_>>().join(", ");
+            let args_list = args
+                .iter()
+                .map(|arg| match arg {
+                    IdlDefinedTypeArg::Generic(generic) => generic.clone(),
+                    IdlDefinedTypeArg::Value(value) => value.clone(),
+                    IdlDefinedTypeArg::Type(idl_type) => ty_to_rust_type(idl_type),
+                })
+                .collect::<Vec<_>>()
+                .join(", ");
             format!("{}<{}>", name, args_list)
         }
     }
