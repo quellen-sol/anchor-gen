@@ -61,7 +61,7 @@ pub fn generate_ix_deser_structs(ixs: &[IdlInstruction]) -> TokenStream {
         }
 
         impl InstructionUnion {
-            fn try_from_slice(data: &[u8]) -> Result<Self> {
+            pub fn try_from_slice(data: &[u8]) -> Result<Self> {
                 let hex_enc = u64::from_le_bytes(data.try_into()?);
                 match hex_enc {
                     #(#match_arms),*,
