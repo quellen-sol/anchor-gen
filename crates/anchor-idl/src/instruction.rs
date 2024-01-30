@@ -44,7 +44,7 @@ pub fn generate_ix_deser_structs(ixs: &[IdlInstruction]) -> TokenStream {
                     Ok(InstructionUnion::#ix_without_suffix(ix))
                 }
             });
-            
+
             quote! {
                 #[derive(AnchorDeserialize, Clone, Debug)]
                 pub struct #ix_name_with_suffix {
