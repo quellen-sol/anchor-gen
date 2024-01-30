@@ -11,38 +11,63 @@ pub fn format_ix_name(ix: &IdlInstruction) -> (Ident, Ident) {
 
 pub fn generate_ix_deser_structs(ixs: &[IdlInstruction]) -> TokenStream {
     let mut enum_fields = vec![];
-    let struct_defs = ixs.iter().map(|ix| {
-        let (ix_without_suffix, ix_name_with_suffix) = format_ix_name(ix);
+    let mut match_arms = vec![];
+    let struct_defs = ixs
+        .iter()
+        .map(|ix| {
+            let (ix_without_suffix, ix_name_with_suffix) = format_ix_name(ix);
 
-        let args = ix
-            .args
-            .iter()
-            .map(|arg| {
-                let name = format_ident!("{}", arg.name.to_snake_case());
-                let type_name = crate::ty_to_rust_type(&arg.ty);
-                let stream = type_name.parse::<TokenStream>().unwrap();
-                quote! {
-                    pub #name: #stream
+            let args = ix
+                .args
+                .iter()
+                .map(|arg| {
+                    let name = format_ident!("{}", arg.name.to_snake_case());
+                    let type_name = crate::ty_to_rust_type(&arg.ty);
+                    let stream = type_name.parse::<TokenStream>().unwrap();
+                    quote! {
+                        pub #name: #stream
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            enum_fields.push(quote! {
+                #ix_without_suffix(#ix_name_with_suffix)
+            });
+
+            let leading_hex = sha256::digest(format!("global:{}", ix.name.to_snake_case()));
+            let leading_bytes = &hex::decode(leading_hex).unwrap()[..8];
+            let leading_u64 = u64::from_le_bytes(leading_bytes.try_into().unwrap());
+
+            match_arms.push(quote! {
+                #leading_u64 => {
+                    let ix = #ix_name_with_suffix::try_from_slice(data)?;
+                    Ok(InstructionUnion::#ix_without_suffix(ix))
                 }
-            })
-            .collect::<Vec<_>>();
-
-        enum_fields.push(quote! {
-            #ix_without_suffix(#ix_name_with_suffix)
-        });
-
-        quote! {
-            #[derive(AnchorDeserialize, Clone, Debug)]
-            pub struct #ix_name_with_suffix {
-                #(#args),*
+            });
+            
+            quote! {
+                #[derive(AnchorDeserialize, Clone, Debug)]
+                pub struct #ix_name_with_suffix {
+                    #(#args),*
+                }
             }
-        }
-    }).collect::<Vec<_>>();
+        })
+        .collect::<Vec<_>>();
 
     quote! {
-        #[derive(AnchorDeserialize, Clone, Debug)]
+        #[derive(Clone, Debug)]
         pub enum InstructionUnion {
             #(#enum_fields),*
+        }
+
+        impl InstructionUnion {
+            fn try_from_slice(data: &[u8]) -> Result<Self> {
+                let hex_enc = u64::from_le_bytes(data.try_into()?);
+                match hex_enc {
+                    #(#match_arms),*,
+                    _ => Err(anyhow::anyhow!("unknown instruction")),
+                }
+            }
         }
 
         #(#struct_defs)*

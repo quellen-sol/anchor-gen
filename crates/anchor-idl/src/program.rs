@@ -148,25 +148,7 @@ impl Generator {
 
         quote! {
             use anchor_lang::prelude::*;
-
-            // pub mod typedefs {
-            //     use super::*;
-            //     #typedefs
-            // }
-
-            // pub mod instructions {
-            //     use super::*;
-            //     #ix_structs
-            // }
-
-            // pub mod state {
-            //     use super::*;
-            //     #accounts
-            // }
-
-            // pub use state::*;
-            // pub use instructions::*;
-            // pub use typedefs::*;
+            use anyhow::Result;
 
             #typedefs
             #ix_structs

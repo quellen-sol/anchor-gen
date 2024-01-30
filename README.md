@@ -8,8 +8,6 @@ In a new crate, write:
 
 ```rust
 anchor_gen::generate_cpi_crate!("../../examples/govern-cpi/idl.json");
-
-declare_id!("GjphYQcbP1m3FuDyCTUJf2mUMxKPE3j6feWU1rxvC7Ps");
 ```
 
 This will generate a fully functional Rust CPI client for your IDL.

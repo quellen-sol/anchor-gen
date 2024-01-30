@@ -7,20 +7,4 @@
 //! [anchor-gen](https://github.com/saber-hq/anchor-gen), a crate for generating
 //! Anchor CPI helpers from JSON IDLs.
 
-anchor_gen::generate_cpi_interface!(
-    idl_path = "widl.json",
-    zero_copy_unsafe(TickArray, Tick),
-    packed_representation(TickArray, Tick),
-);
-
-// impl Default for TickArray {
-//     fn default() -> Self {
-//         Self {
-//             start_tick_index: Default::default(),
-//             ticks: [Default::default(); 88],
-//             whirlpool: Default::default(),
-//         }
-//     }
-// }
-
-declare_id!("whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3uctyCc");
+anchor_gen::generate_cpi_crate!("widl.json");
