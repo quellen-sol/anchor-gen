@@ -14,6 +14,8 @@ fn handle_union(union: InstructionUnion) {
 }
 
 fn thing() {
+  let s: FeeEvent;
+
   let t = SharedAccountsRouteIx {
     id: 0,
     route_plan: vec![],
