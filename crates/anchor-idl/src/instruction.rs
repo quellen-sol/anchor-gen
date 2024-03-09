@@ -40,7 +40,7 @@ pub fn generate_ix_deser_structs(ixs: &[IdlInstruction]) -> TokenStream {
 
             match_arms.push(quote! {
                 #leading_u64 => {
-                    let ix = #ix_name_with_suffix::try_from_slice(data)?;
+                    let ix = #ix_name_with_suffix::try_from_slice(&data[8..])?;
                     Ok(InstructionUnion::#ix_without_suffix(ix))
                 }
             });
@@ -62,7 +62,7 @@ pub fn generate_ix_deser_structs(ixs: &[IdlInstruction]) -> TokenStream {
 
         impl InstructionUnion {
             pub fn try_from_slice(data: &[u8]) -> Result<Self> {
-                let hex_enc = u64::from_le_bytes(data.try_into()?);
+                let hex_enc = u64::from_le_bytes(data[0..8].try_into()?);
                 match hex_enc {
                     #(#match_arms),*,
                     _ => Err(anyhow::anyhow!("unknown instruction")),

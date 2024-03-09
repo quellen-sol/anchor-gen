@@ -33,13 +33,13 @@ pub fn generate_events(events: &Option<Vec<IdlEvent>>) -> TokenStream {
               #name(#name)
             });
 
-            let leading_hex = sha256::digest(format!("event:{}", event.name));
+            let leading_hex = sha256::digest(format!("event:{}", event.name.to_pascal_case()));
             let leading_bytes = &hex::decode(leading_hex).unwrap()[..8];
             let leading_u64 = u64::from_le_bytes(leading_bytes.try_into().unwrap());
 
             match_arms.push(quote! {
               #leading_u64 => {
-                let event = #name::try_from_slice(data)?;
+                let event = #name::try_from_slice(&data[8..])?;
                 Ok(EventUnion::#name(event))
               }
             });
