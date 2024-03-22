@@ -40,7 +40,8 @@ pub fn generate_ix_deser_structs(ixs: &[IdlInstruction]) -> TokenStream {
 
             match_arms.push(quote! {
                 #leading_u64 => {
-                    let ix = #ix_name_with_suffix::try_from_slice(&data[8..])?;
+                    let mut remaining_bytes = &data[8..];
+                    let ix = #ix_name_with_suffix::deserialize(&mut remaining_bytes)?;
                     Ok(InstructionUnion::#ix_without_suffix(ix))
                 }
             });

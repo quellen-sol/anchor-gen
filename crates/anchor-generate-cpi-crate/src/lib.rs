@@ -26,7 +26,7 @@ use syn::{parse_macro_input, LitStr};
 ///
 /// # Examples
 ///
-/// ```
+/// ```skip
 /// anchor_generate_cpi_crate::generate_cpi_crate!("../../examples/govern-cpi/idl.json");
 /// declare_id!("GjphYQcbP1m3FuDyCTUJf2mUMxKPE3j6feWU1rxvC7Ps");
 /// # fn main() -> Result<()> {

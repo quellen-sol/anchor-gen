@@ -1,27 +1,52 @@
 anchor_gen::generate_cpi_crate!("idl.json");
 
-// declare_id!("Govz1VyoyLD5BL6CSCxUJLVLsQHRwjfFj1prNsdNg5Jw");
-
 fn handle_union(union: InstructionUnion) {
-    match union {
-        InstructionUnion::SharedAccountsExactOutRoute(ix) => {
-            println!("{}", ix.platform_fee_bps);
-        }
-        _ => {
-            panic!("AAAAAAAAA");
-        }
+  match union {
+    InstructionUnion::SharedAccountsExactOutRoute(ix) => {
+      println!("{}", ix.platform_fee_bps);
     }
+    _ => {
+      panic!("AAAAAAAAA");
+    }
+  }
 }
 
 fn thing() {
-    let _s: FeeEvent;
+  let _s: FeeEvent;
 
-    let _t = SharedAccountsRouteIx {
-        id: 0,
-        route_plan: vec![],
-        in_amount: 0,
-        quoted_out_amount: 0,
-        slippage_bps: 0,
-        platform_fee_bps: 0,
-    };
+  let _t = SharedAccountsRouteIx {
+    id: 0,
+    route_plan: vec![],
+    in_amount: 0,
+    quoted_out_amount: 0,
+    slippage_bps: 0,
+    platform_fee_bps: 0,
+  };
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  anchor_gen::generate_cpi_crate!("idl.json");
+
+  #[test]
+  fn deser_route_ix() {
+    // `try_from_slice`` won't work, but it is valid data
+    let mut route_ix_bytes1 = vec![
+      0xe5, 0x17, 0xcb, 0x97, 0x7a, 0xe3, 0xad, 0x2a, 0x03, 0x00, 0x00, 0x00, 0x03, 0x64, 0x00,
+      0x01, 0x03, 0x64, 0x01, 0x02, 0x11, 0x00, 0x64, 0x02, 0x03, 0x40, 0x42, 0x0f, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x57, 0x2e, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x32, 0x00, 0x00,
+    ];
+    
+    // known to work with `try_from_slice`
+    let mut route_ix_bytes2 = vec![
+      0xe5, 0x17, 0xcb, 0x97, 0x7a, 0xe3, 0xad, 0x2a, 0x03, 0x00, 0x00, 0x00, 0x26, 0x64, 0x00,
+      0x01, 0x26, 0x64, 0x01, 0x02, 0x26, 0x64, 0x02, 0x00, 0x20, 0x5a, 0x45, 0x09, 0x00, 0x00,
+      0x00, 0x00, 0x20, 0x5a, 0x45, 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    ];
+
+    RouteIx::deserialize(&mut &route_ix_bytes1[8..]).unwrap();
+    RouteIx::deserialize(&mut &route_ix_bytes2[8..]).unwrap();
+  }
 }
