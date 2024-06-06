@@ -170,7 +170,7 @@ pub fn generate_struct(
 
     quote! {
         #derive_copy
-        #[derive(Debug, AnchorDeserialize)]
+        #[derive(AnchorDeserialize, Debug)]
         pub struct #struct_name {
             #fields_rendered
         }
@@ -218,7 +218,6 @@ pub fn generate_typedefs(typedefs: &[IdlTypeDefinition]) -> TokenStream {
                 let ty = crate::ty_to_rust_type(value);
                 let stream: proc_macro2::TokenStream = ty.parse().unwrap();
                 quote! {
-                    #[derive(AnchorDeserialize, Clone, Debug)]
                     pub type #struct_name = #stream;
                 }
             }
