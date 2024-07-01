@@ -1,26 +1,77 @@
+use std::collections::BTreeMap;
+
 use anchor_syn::idl::types::{IdlField, IdlTypeDefinition, IdlTypeDefinitionTy};
 use heck::ToPascalCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::{generate_fields, get_field_list_properties};
+use crate::{generate_fields, get_field_list_properties, StructOpts, ZeroCopy};
 
 /// Generates an account state struct.
 pub fn generate_account(
     defs: &[IdlTypeDefinition],
     account_name: &str,
     fields: &[IdlField],
+    opts: StructOpts,
 ) -> TokenStream {
-    let _props = get_field_list_properties(defs, fields);
+    let props = get_field_list_properties(defs, fields);
+
+    let derive_copy = if props.can_copy && opts.zero_copy.is_none() {
+        quote! {
+            #[derive(Copy)]
+        }
+    } else {
+        quote! {}
+    };
+    let derive_default = if props.can_derive_default {
+        quote! {
+            #[derive(Default)]
+        }
+    } else {
+        quote! {}
+    };
+
+    let derive_account = if let Some(zero_copy) = opts.zero_copy {
+        let zero_copy_quote = match zero_copy {
+            ZeroCopy::Safe => quote! {
+                #[zero_copy]
+            },
+            ZeroCopy::Unsafe => quote! {
+                #[zero_copy(unsafe)]
+            },
+        };
+
+        if let Some(repr) = opts.representation {
+            let repr_quote = match repr {
+                crate::Representation::C => quote! {
+                    #[repr(C)]
+                },
+                crate::Representation::Transparent => quote! {
+                    #[repr(transparent)]
+                },
+                crate::Representation::Packed => quote! {
+                    #[repr(packed)]
+                },
+            };
+            quote! {
+                #zero_copy_quote
+                #repr_quote
+            }
+        } else {
+            zero_copy_quote
+        }
+    } else {
+        quote! {}
+    };
 
     // let doc = format!(" Account: {}", account_name);
     let struct_name = format_ident!("{}", account_name.to_pascal_case());
     let fields_rendered = generate_fields(fields);
     quote! {
-        // #derive_account
+        #derive_account
         // // #[doc = #doc]
-        // #derive_copy
-        // #derive_default
+        #derive_copy
+        #derive_default
         #[derive(AnchorDeserialize, Clone, Debug)]
         pub struct #struct_name {
             #fields_rendered
@@ -32,9 +83,13 @@ pub fn generate_account(
 pub fn generate_accounts(
     typedefs: &[IdlTypeDefinition],
     account_defs: &[IdlTypeDefinition],
+    struct_opts: &BTreeMap<String, StructOpts>,
 ) -> TokenStream {
     let defined = account_defs.iter().map(|def| match &def.ty {
-        IdlTypeDefinitionTy::Struct { fields } => generate_account(typedefs, &def.name, fields),
+        IdlTypeDefinitionTy::Struct { fields } => {
+            let opts = struct_opts.get(&def.name).cloned().unwrap_or_default();
+            generate_account(typedefs, &def.name, fields, opts)
+        }
         IdlTypeDefinitionTy::Enum { .. } => {
             panic!("unexpected enum account");
         }

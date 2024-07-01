@@ -394,12 +394,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "base58"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6107fe1be6682a68940da878d9e9f5e90ca5745b3dec9fd1bb393c8777d4f581"
-
-[[package]]
 name = "base64"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -888,15 +882,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4271d37baee1b8c7e4b708028c57d816cf9d2434acb33a549475f78c181f6253"
 
 [[package]]
-name = "govern-cpi"
-version = "0.3.0"
-dependencies = [
- "anchor-gen",
- "anchor-lang",
- "anyhow",
-]
-
-[[package]]
 name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1018,16 +1003,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "jup-v6"
-version = "0.1.0"
-dependencies = [
- "anchor-gen",
- "anchor-lang",
- "anyhow",
- "base58",
-]
-
-[[package]]
 name = "keccak"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1111,15 +1086,6 @@ name = "log"
 version = "0.4.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
-
-[[package]]
-name = "marinade-cpi"
-version = "0.4.0"
-dependencies = [
- "anchor-gen",
- "anchor-lang",
- "anyhow",
-]
 
 [[package]]
 name = "memchr"
@@ -1889,16 +1855,6 @@ checksum = "9b85cbef8c220a6abc02aefd892dfc0fc23afb1c6a426316ec33253a3877249b"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "whirlpools"
-version = "0.4.0"
-dependencies = [
- "anchor-gen",
- "anchor-lang",
- "anyhow",
- "bytemuck",
 ]
 
 [[package]]

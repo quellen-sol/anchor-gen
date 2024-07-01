@@ -132,8 +132,8 @@ impl Generator {
     pub fn generate_cpi_interface(&self) -> TokenStream {
         let idl = &self.idl;
 
-        let accounts = generate_accounts(&idl.types, &idl.accounts);
-        let typedefs = generate_typedefs(&idl.types);
+        let accounts = generate_accounts(&idl.types, &idl.accounts, &self.struct_opts);
+        let typedefs = generate_typedefs(&idl.types, &self.struct_opts);
         // let ix_handlers = generate_ix_handlers(&idl.instructions);
         // let ix_structs = generate_ix_structs(&idl.instructions);
         let ix_structs = generate_ix_deser_structs(&idl.instructions);
