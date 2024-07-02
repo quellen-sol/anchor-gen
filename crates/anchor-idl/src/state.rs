@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use anchor_syn::idl::types::{IdlField, IdlTypeDefinition, IdlTypeDefinitionTy};
+
 use heck::ToPascalCase;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -61,8 +62,13 @@ pub fn generate_account(
             zero_copy_quote
         }
     } else {
-        quote! {}
+        // Default to #[derive(Clone)] if zero_copy & repr are not set.
+        quote! {
+             #[account]
+        }
     };
+
+    println!("account_name {} {:?}", account_name, opts);
 
     // let doc = format!(" Account: {}", account_name);
     let struct_name = format_ident!("{}", account_name.to_pascal_case());
@@ -72,7 +78,7 @@ pub fn generate_account(
         // // #[doc = #doc]
         #derive_copy
         #derive_default
-        #[derive(AnchorDeserialize, Clone, Debug)]
+        #[derive(Debug)]
         pub struct #struct_name {
             #fields_rendered
         }

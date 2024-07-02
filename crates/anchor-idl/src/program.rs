@@ -69,6 +69,7 @@ impl GeneratorOptions {
 
         let mut struct_opts: BTreeMap<String, StructOpts> = BTreeMap::new();
         let all_structs: HashSet<&String> = zero_copy.union(&repr).collect::<HashSet<_>>();
+
         all_structs.into_iter().for_each(|name| {
             let is_c_repr = c_repr.contains(name);
             let is_transparent_repr = transparent_repr.contains(name);
@@ -99,25 +100,29 @@ impl GeneratorOptions {
                     zero_copy,
                 },
             );
+            println!(
+                "Processing struct: {} {:?} {:?}",
+                name, representation, zero_copy
+            );
         });
 
         Generator { idl, struct_opts }
     }
 }
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct StructOpts {
     pub representation: Option<Representation>,
     pub zero_copy: Option<ZeroCopy>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum ZeroCopy {
     Unsafe,
     Safe,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Representation {
     C,
     Transparent,
