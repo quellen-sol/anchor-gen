@@ -17,7 +17,7 @@
 use anchor_idl::GeneratorOptions;
 use darling::FromMeta;
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, LitStr};
+use syn::parse_macro_input;
 
 /// Generates an Anchor CPI crate from a JSON file.
 ///

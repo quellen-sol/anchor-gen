@@ -179,10 +179,9 @@ pub fn generate_struct(
         if let Some(repr) = opts.representation {
             let repr_quote = match repr {
                 crate::Representation::C => quote! {
-                    #[repr(C)]
+                    #[repr(C, packed(8))]
                 },
                 crate::Representation::Transparent => quote! {
-
                     #[repr(transparent)]
                 },
                 crate::Representation::Packed => quote! {

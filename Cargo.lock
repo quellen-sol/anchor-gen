@@ -168,8 +168,6 @@ version = "0.4.0"
 dependencies = [
  "anchor-lang",
  "anchor-syn",
- "borsh 0.10.3",
- "bytemuck",
  "darling",
  "heck 0.4.1",
  "hex",

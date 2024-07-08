@@ -45,7 +45,7 @@ pub fn generate_account(
         if let Some(repr) = opts.representation {
             let repr_quote = match repr {
                 crate::Representation::C => quote! {
-                    #[repr(C)]
+                    #[repr(C, packed(8))]
                 },
                 crate::Representation::Transparent => quote! {
                     #[repr(transparent)]
@@ -67,8 +67,6 @@ pub fn generate_account(
              #[account]
         }
     };
-
-    println!("account_name {} {:?}", account_name, opts);
 
     // let doc = format!(" Account: {}", account_name);
     let struct_name = format_ident!("{}", account_name.to_pascal_case());

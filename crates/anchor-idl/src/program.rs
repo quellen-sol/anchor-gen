@@ -100,10 +100,6 @@ impl GeneratorOptions {
                     zero_copy,
                 },
             );
-            println!(
-                "Processing struct: {} {:?} {:?}",
-                name, representation, zero_copy
-            );
         });
 
         Generator { idl, struct_opts }
