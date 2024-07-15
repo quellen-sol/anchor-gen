@@ -53,6 +53,8 @@ pub fn generate_account(
                 crate::Representation::Packed => quote! {
                     #[repr(packed)]
                 },
+                crate::Representation::U8 => quote! {},
+                crate::Representation::U64 => quote! {},
             };
             quote! {
                 #zero_copy_quote

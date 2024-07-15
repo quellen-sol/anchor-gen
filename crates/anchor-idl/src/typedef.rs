@@ -187,6 +187,8 @@ pub fn generate_struct(
                 crate::Representation::Packed => quote! {
                     #[repr(packed)]
                 },
+                crate::Representation::U8 => quote! {},
+                crate::Representation::U64 => quote! {},
             };
             quote! {
                 #zero_copy_quote
@@ -224,6 +226,7 @@ pub fn generate_enum(
     defs: &[IdlTypeDefinition],
     enum_name: &Ident,
     variants: &[IdlEnumVariant],
+    opts: StructOpts,
 ) -> TokenStream {
     let variant_idents = variants.iter().map(|v| format_ident!("{}", v.name));
     let props = get_variant_list_properties(defs, variants);
@@ -238,7 +241,22 @@ pub fn generate_enum(
 
     let default_variant = format_ident!("{}", variants.first().unwrap().name);
 
+    let repr = match opts.representation {
+        Some(crate::Representation::U8) => {
+            quote! {
+                #[repr(u8)]
+            }
+        }
+        Some(crate::Representation::U64) => {
+            quote! {
+                #[repr(u64)]
+            }
+        }
+        _ => quote! {},
+    };
+
     quote! {
+        #repr
         #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
         #derive_copy
         pub enum #enum_name {
@@ -266,7 +284,8 @@ pub fn generate_typedefs(
                 generate_struct(typedefs, &struct_name, fields, opts)
             }
             IdlTypeDefinitionTy::Enum { variants } => {
-                generate_enum(typedefs, &struct_name, variants)
+                let opts = struct_opts.get(&def.name).cloned().unwrap_or_default();
+                generate_enum(typedefs, &struct_name, variants, opts)
             }
             IdlTypeDefinitionTy::Alias { value } => {
                 let ty = crate::ty_to_rust_type(value);
