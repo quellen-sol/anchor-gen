@@ -15,8 +15,9 @@
 //! More examples can be found in the [examples/](https://github.com/saber-hq/anchor-gen/tree/master/examples) directory.
 
 use anchor_idl::GeneratorOptions;
+use darling::FromMeta;
 use proc_macro::TokenStream;
-use syn::{parse_macro_input, LitStr};
+use syn::parse_macro_input;
 
 /// Generates an Anchor CPI crate from a JSON file.
 ///
@@ -41,12 +42,12 @@ use syn::{parse_macro_input, LitStr};
 /// ```
 #[proc_macro]
 pub fn generate_cpi_crate(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let id_literal = parse_macro_input!(input as LitStr);
-    let opts = GeneratorOptions {
-        idl_path: id_literal.value(),
-        ..Default::default()
+    let attr_args = parse_macro_input!(input as syn::AttributeArgs);
+    let parsed = match GeneratorOptions::from_list(&attr_args) {
+        Ok(v) => v,
+        Err(e) => {
+            return TokenStream::from(e.write_errors());
+        }
     };
-    let result: TokenStream = opts.to_generator().generate_cpi_interface().into();
-
-    result
+    parsed.to_generator().generate_cpi_interface().into()
 }

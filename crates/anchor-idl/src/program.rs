@@ -69,6 +69,7 @@ impl GeneratorOptions {
 
         let mut struct_opts: BTreeMap<String, StructOpts> = BTreeMap::new();
         let all_structs: HashSet<&String> = zero_copy.union(&repr).collect::<HashSet<_>>();
+
         all_structs.into_iter().for_each(|name| {
             let is_c_repr = c_repr.contains(name);
             let is_transparent_repr = transparent_repr.contains(name);
@@ -105,19 +106,19 @@ impl GeneratorOptions {
     }
 }
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, Debug)]
 pub struct StructOpts {
     pub representation: Option<Representation>,
     pub zero_copy: Option<ZeroCopy>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum ZeroCopy {
     Unsafe,
     Safe,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum Representation {
     C,
     Transparent,
@@ -132,8 +133,8 @@ impl Generator {
     pub fn generate_cpi_interface(&self) -> TokenStream {
         let idl = &self.idl;
 
-        let accounts = generate_accounts(&idl.types, &idl.accounts);
-        let typedefs = generate_typedefs(&idl.types);
+        let accounts = generate_accounts(&idl.types, &idl.accounts, &self.struct_opts);
+        let typedefs = generate_typedefs(&idl.types, &self.struct_opts);
         // let ix_handlers = generate_ix_handlers(&idl.instructions);
         // let ix_structs = generate_ix_structs(&idl.instructions);
         let ix_structs = generate_ix_deser_structs(&idl.instructions);

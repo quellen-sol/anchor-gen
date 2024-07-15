@@ -14,9 +14,7 @@ name = "anchor_gen"
 path = "src/lib.rs"
 
 [features]
-compat-program-result = [
-  "anchor-generate-cpi-crate/compat-program-result",
-]
+compat-program-result = ["anchor-generate-cpi-crate/compat-program-result"]
 
 [dependencies]
 anchor-generate-cpi-crate = { version = "0.4.0", path = "../anchor-generate-cpi-crate" }
