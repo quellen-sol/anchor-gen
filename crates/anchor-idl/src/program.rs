@@ -22,10 +22,18 @@ pub struct GeneratorOptions {
     pub zero_copy_unsafe: Option<PathList>,
     /// List of `repr(C)` structs.
     pub c_representation: Option<PathList>,
+    /// List of `repr(C, packed(8))` structs with C repr,
+    pub c_packed_8_representation: Option<PathList>,
+    /// List of `repr(C, packed(16))` structs with C repr,
+    pub c_packed_16_representation: Option<PathList>,
     /// List of `repr(transparent)` structs.
     pub transparent_representation: Option<PathList>,
     /// List of `repr(packed)` structs.
     pub packed_representation: Option<PathList>,
+    /// List of `repr(u8)` structs.
+    pub u8_representation: Option<PathList>,
+    /// List of `repr(u64)` structs.
+    pub u64_representation: Option<PathList>,
 }
 
 fn path_list_to_string(list: Option<&PathList>) -> HashSet<String> {
@@ -50,15 +58,35 @@ impl GeneratorOptions {
 
         let c_repr = path_list_to_string(self.c_representation.as_ref());
 
+        let c_8_repr = path_list_to_string(self.c_packed_8_representation.as_ref());
+
+        let c_16_repr = path_list_to_string(self.c_packed_16_representation.as_ref());
+
         let transparent_repr = path_list_to_string(self.transparent_representation.as_ref());
 
         let packed_repr = path_list_to_string(self.packed_representation.as_ref());
 
+        let u8_repr = path_list_to_string(self.u8_representation.as_ref());
+
+        let u64_repr = path_list_to_string(self.u64_representation.as_ref());
+
         let repr = c_repr
+            .union(&c_8_repr)
+            .cloned()
+            .collect::<HashSet<_>>()
+            .union(&c_16_repr)
+            .cloned()
+            .collect::<HashSet<_>>()
             .union(&transparent_repr)
             .cloned()
             .collect::<HashSet<_>>()
             .union(&packed_repr)
+            .cloned()
+            .collect::<HashSet<_>>()
+            .union(&u8_repr)
+            .cloned()
+            .collect::<HashSet<_>>()
+            .union(&u64_repr)
             .cloned()
             .collect::<HashSet<_>>();
 
@@ -72,15 +100,33 @@ impl GeneratorOptions {
 
         all_structs.into_iter().for_each(|name| {
             let is_c_repr = c_repr.contains(name);
+            let is_c_8_repr = c_8_repr.contains(name);
+            let is_c_16_repr = c_16_repr.contains(name);
             let is_transparent_repr = transparent_repr.contains(name);
             let is_packed_repr = packed_repr.contains(name);
+            let is_u8_repr = u8_repr.contains(name);
+            let is_u64_repr = u64_repr.contains(name);
 
-            let representation = match (is_c_repr, is_transparent_repr, is_packed_repr) {
-                (true, false, false) => Some(Representation::C),
-                (false, true, false) => Some(Representation::Transparent),
-                (false, false, true) => Some(Representation::Packed),
-                (false, false, false) => None,
-                _ => panic!("a type cannot have many representation"),
+            let representation = match (
+                is_c_repr,
+                is_transparent_repr,
+                is_packed_repr,
+                is_u8_repr,
+                is_u64_repr,
+                is_c_8_repr,
+                is_c_16_repr,
+            ) {
+                (true, false, false, false, false, false, false) => Some(Representation::C),
+                (false, true, false, false, false, false, false) => {
+                    Some(Representation::Transparent)
+                }
+                (false, false, true, false, false, false, false) => Some(Representation::Packed),
+                (false, false, false, true, false, false, false) => Some(Representation::U8),
+                (false, false, false, false, true, false, false) => Some(Representation::U64),
+                (false, false, false, false, false, true, false) => Some(Representation::CPacked8),
+                (false, false, false, false, false, false, true) => Some(Representation::CPacked16),
+                (false, false, false, false, false, false, false) => None,
+                _ => panic!("type {name} cannot have many representations"),
             };
 
             let is_zero_copy_safe = zero_copy_safe.contains(name);
@@ -123,6 +169,10 @@ pub enum Representation {
     C,
     Transparent,
     Packed,
+    U8,
+    U64,
+    CPacked8,
+    CPacked16,
 }
 pub struct Generator {
     pub idl: anchor_syn::idl::types::Idl,
