@@ -45,7 +45,7 @@ pub fn generate_account(
         if let Some(repr) = opts.representation {
             let repr_quote = match repr {
                 crate::Representation::C => quote! {
-                    #[repr(C, packed(8))]
+                    #[repr(C)]
                 },
                 crate::Representation::Transparent => quote! {
                     #[repr(transparent)]
@@ -55,6 +55,12 @@ pub fn generate_account(
                 },
                 crate::Representation::U8 => quote! {},
                 crate::Representation::U64 => quote! {},
+                crate::Representation::CPacked8 => quote! {
+                    #[repr(C, packed(8))]
+                },
+                crate::Representation::CPacked16 => quote! {
+                    #[repr(C, packed(16))]
+                },
             };
             quote! {
                 #zero_copy_quote
