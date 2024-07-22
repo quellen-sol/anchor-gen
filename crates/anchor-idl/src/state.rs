@@ -70,7 +70,7 @@ pub fn generate_account(
 
     let acct_derive = if opts.zero_copy.is_none() && opts.representation.is_none() {
         quote! {
-            #[derive(AnchorSerialize, AnchorDeserialize, Debug, Clone)]
+            #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
         }
     } else {
         quote! {}
@@ -87,7 +87,7 @@ pub fn generate_account(
         };
 
         quote! {
-            #[derive(AnchorSerialize, AnchorDeserialize, Debug)]
+            #[derive(AnchorSerialize, AnchorDeserialize)]
             #add_clone
         }
     } else {
@@ -101,9 +101,9 @@ pub fn generate_account(
         #zc_derive
         #repr_derive
         #acct_derive
-        // #derive_copy
         #derive_default
         #borsh_derive
+        #[derive(Debug)]
         pub struct #struct_name {
             #fields_rendered
         }

@@ -241,7 +241,6 @@ pub fn generate_struct(
         #zc_derive
         #repr_derive
         #acct_derive
-        // #derive_copy
         #borsh_derive
         #derive_default
         #[derive(Debug)]
