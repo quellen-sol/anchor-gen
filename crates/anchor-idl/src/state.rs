@@ -28,10 +28,10 @@ pub fn generate_account(
     let zc_derive = if let Some(zero_copy) = opts.zero_copy {
         match zero_copy {
             ZeroCopy::Safe => quote! {
-                #[zero_copy]
+                #[account(zero_copy)]
             },
             ZeroCopy::Unsafe => quote! {
-                #[zero_copy(unsafe)]
+                #[account(zero_copy(unsafe))]
             },
         }
     } else {
