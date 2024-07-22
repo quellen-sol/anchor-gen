@@ -26,6 +26,10 @@ pub struct GeneratorOptions {
     pub c_packed_8_representation: Option<PathList>,
     /// List of `repr(C, packed(16))` structs with C repr,
     pub c_packed_16_representation: Option<PathList>,
+    /// List of `repr(C, align(8))` structs with C repr,
+    pub c_align_8_representation: Option<PathList>,
+    /// List of `repr(C, align(16))` structs with C repr,
+    pub c_align_16_representation: Option<PathList>,
     /// List of `repr(transparent)` structs.
     pub transparent_representation: Option<PathList>,
     /// List of `repr(packed)` structs.
@@ -34,6 +38,8 @@ pub struct GeneratorOptions {
     pub u8_representation: Option<PathList>,
     /// List of `repr(u64)` structs.
     pub u64_representation: Option<PathList>,
+    /// List of `BorshDeserialize` structs.
+    pub borsh: Option<PathList>,
 }
 
 fn path_list_to_string(list: Option<&PathList>) -> HashSet<String> {
@@ -58,9 +64,13 @@ impl GeneratorOptions {
 
         let c_repr = path_list_to_string(self.c_representation.as_ref());
 
-        let c_8_repr = path_list_to_string(self.c_packed_8_representation.as_ref());
+        let c_p8_repr = path_list_to_string(self.c_packed_8_representation.as_ref());
 
-        let c_16_repr = path_list_to_string(self.c_packed_16_representation.as_ref());
+        let c_p16_repr = path_list_to_string(self.c_packed_16_representation.as_ref());
+
+        let c_a8_repr = path_list_to_string(self.c_align_8_representation.as_ref());
+
+        let c_a16_repr = path_list_to_string(self.c_align_16_representation.as_ref());
 
         let transparent_repr = path_list_to_string(self.transparent_representation.as_ref());
 
@@ -70,11 +80,19 @@ impl GeneratorOptions {
 
         let u64_repr = path_list_to_string(self.u64_representation.as_ref());
 
+        let borsh_des = path_list_to_string(self.borsh.as_ref());
+
         let repr = c_repr
-            .union(&c_8_repr)
+            .union(&c_p8_repr)
             .cloned()
             .collect::<HashSet<_>>()
-            .union(&c_16_repr)
+            .union(&c_p16_repr)
+            .cloned()
+            .collect::<HashSet<_>>()
+            .union(&c_a8_repr)
+            .cloned()
+            .collect::<HashSet<_>>()
+            .union(&c_a16_repr)
             .cloned()
             .collect::<HashSet<_>>()
             .union(&transparent_repr)
@@ -100,8 +118,11 @@ impl GeneratorOptions {
 
         all_structs.into_iter().for_each(|name| {
             let is_c_repr = c_repr.contains(name);
-            let is_c_8_repr = c_8_repr.contains(name);
-            let is_c_16_repr = c_16_repr.contains(name);
+            let is_c_p8_repr = c_p8_repr.contains(name);
+            let is_c_p16_repr = c_p16_repr.contains(name);
+            let is_c_a8_repr = c_a8_repr.contains(name);
+            let is_c_a16_repr = c_a16_repr.contains(name);
+
             let is_transparent_repr = transparent_repr.contains(name);
             let is_packed_repr = packed_repr.contains(name);
             let is_u8_repr = u8_repr.contains(name);
@@ -113,19 +134,39 @@ impl GeneratorOptions {
                 is_packed_repr,
                 is_u8_repr,
                 is_u64_repr,
-                is_c_8_repr,
-                is_c_16_repr,
+                is_c_p8_repr,
+                is_c_p16_repr,
+                is_c_a8_repr,
+                is_c_a16_repr,
             ) {
-                (true, false, false, false, false, false, false) => Some(Representation::C),
-                (false, true, false, false, false, false, false) => {
+                (true, false, false, false, false, false, false, false, false) => {
+                    Some(Representation::C)
+                }
+                (false, true, false, false, false, false, false, false, false) => {
                     Some(Representation::Transparent)
                 }
-                (false, false, true, false, false, false, false) => Some(Representation::Packed),
-                (false, false, false, true, false, false, false) => Some(Representation::U8),
-                (false, false, false, false, true, false, false) => Some(Representation::U64),
-                (false, false, false, false, false, true, false) => Some(Representation::CPacked8),
-                (false, false, false, false, false, false, true) => Some(Representation::CPacked16),
-                (false, false, false, false, false, false, false) => None,
+                (false, false, true, false, false, false, false, false, false) => {
+                    Some(Representation::Packed)
+                }
+                (false, false, false, true, false, false, false, false, false) => {
+                    Some(Representation::U8)
+                }
+                (false, false, false, false, true, false, false, false, false) => {
+                    Some(Representation::U64)
+                }
+                (false, false, false, false, false, true, false, false, false) => {
+                    Some(Representation::CPacked8)
+                }
+                (false, false, false, false, false, false, true, false, false) => {
+                    Some(Representation::CPacked16)
+                }
+                (false, false, false, false, false, false, false, true, false) => {
+                    Some(Representation::CAlign8)
+                }
+                (false, false, false, false, false, false, false, false, true) => {
+                    Some(Representation::CAlign16)
+                }
+                (false, false, false, false, false, false, false, false, false) => None,
                 _ => panic!("type {name} cannot have many representations"),
             };
 
@@ -139,11 +180,14 @@ impl GeneratorOptions {
                 (false, false) => None,
             };
 
+            let can_borsh = borsh_des.contains(name);
+
             struct_opts.insert(
                 name.to_string(),
                 StructOpts {
                     representation,
                     zero_copy,
+                    can_borsh,
                 },
             );
         });
@@ -156,6 +200,7 @@ impl GeneratorOptions {
 pub struct StructOpts {
     pub representation: Option<Representation>,
     pub zero_copy: Option<ZeroCopy>,
+    pub can_borsh: bool,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -173,6 +218,8 @@ pub enum Representation {
     U64,
     CPacked8,
     CPacked16,
+    CAlign8,
+    CAlign16,
 }
 pub struct Generator {
     pub idl: anchor_syn::idl::types::Idl,
