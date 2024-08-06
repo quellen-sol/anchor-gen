@@ -95,7 +95,27 @@ pub fn generate_account(
     };
 
     // let doc = format!(" Account: {}", account_name);
-    let struct_name = format_ident!("{}", account_name.to_pascal_case());
+    let pascal_name = account_name.to_pascal_case();
+
+    let discriminator_const_statement = {
+        let namespace = if opts.zero_copy.is_some() {
+            "account"
+        } else {
+            "global"
+        };
+
+        let combined_name = format!("{namespace}:{pascal_name}");
+        let sha = sha256::digest(combined_name);
+        let first = &sha[..16];
+        let bytes = hex::decode(first).unwrap();
+        quote! {
+            pub const DISCRIMINATOR: [u8; 8] = [
+                #(#bytes),*
+            ];
+        }
+    };
+
+    let struct_name = format_ident!("{}", pascal_name);
     let fields_rendered = generate_fields(fields);
     quote! {
         #zc_derive
@@ -106,6 +126,10 @@ pub fn generate_account(
         #[derive(Debug)]
         pub struct #struct_name {
             #fields_rendered
+        }
+
+        impl #struct_name {
+            #discriminator_const_statement
         }
     }
 }
