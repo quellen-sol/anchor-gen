@@ -106,7 +106,7 @@ pub fn generate_account(
 
         let combined_name = format!("{namespace}:{pascal_name}");
         let sha = sha256::digest(combined_name);
-        let first = &sha[..8];
+        let first = &sha[..16];
         let bytes = hex::decode(first).unwrap();
         quote! {
             pub const DISCRIMINATOR: [u8; 8] = [
