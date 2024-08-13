@@ -248,8 +248,6 @@ impl Generator {
             use anchor_lang::prelude::*;
             use anyhow::Result;
 
-            static ID: Pubkey = Pubkey::new_from_array([0u8; 32]);
-
             #typedefs
             #ix_structs
             #accounts
