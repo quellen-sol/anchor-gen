@@ -131,6 +131,15 @@ pub fn generate_account(
         impl #struct_name {
             #discriminator_const_statement
         }
+
+        impl crate::Discriminatable for #struct_name {
+            fn discriminator() -> (&'static Pubkey, &'static [u8]) {
+                (
+                    &ID,
+                    &#struct_name::DISCRIMINATOR,
+                )
+            }
+        }
     }
 }
 
